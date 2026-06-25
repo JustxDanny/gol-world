@@ -61,7 +61,7 @@ A bare run (no input) starts with a single glider.
   swapped (ping-pong).
 - **Input handover:** the seed is read from stdin, then the controlling terminal is
   reopened so ncurses can read live keys.
-- **Tested:** a hidden `--frames N` mode runs headless so CI can valgrind the
+- **Tested:** a hidden headless mode (set `GOL_FRAMES`) runs headless so CI can valgrind the
   allocation path for leaks and assert known populations.
 
 ## Tests
