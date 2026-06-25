@@ -32,7 +32,9 @@ typedef struct {
 } World;
 
 // Flat index of padded coordinate (pr, pc) inside a ghost-bordered buffer.
-static int at(int w, int pr, int pc) { return pr * (w + 2) + pc; }
+static int at(int w, int pr, int pc) {
+    return pr * (w + 2) + pc;
+}
 
 // Allocate both buffers (sized with the border). Returns 0 on success, -1 if not.
 static int world_init(World* wd, int h, int w) {
@@ -221,13 +223,14 @@ static void run_ncurses(World* wd) {
         }
         draw_cells(wd, oy, ox);
         if (LINES > wd->h + 2) {
-            mvprintw(LINES - 1, 0, "gen:%-5d pop:%-4d delay:%dms  A:+ Z:- Space:quit", gen, population(wd),
-                     delay);
+            mvprintw(LINES - 1, 0, "gen:%-5d pop:%-4d delay:%dms  A:+ Z:- Space:quit", gen,
+                     population(wd), delay);
         }
         refresh();
         step(wd);
         gen++;
     }
+    curs_set(1);
     endwin();
 }
 
@@ -249,19 +252,20 @@ int main(void) {
     // Headless test mode: if GOL_FRAMES is set, run that many ticks with no screen.
     const char* frames_env = getenv("GOL_FRAMES");
     int frames = frames_env != NULL ? atoi(frames_env) : -1;
-    // Take the seed from a redirected file, or fall back to a built-in glider.
-    if (isatty(STDIN_FILENO)) {
-        load_default(&wd);
-    } else {
+    // Seed from a redirected file; on a bare terminal fall back to a built-in glider.
+    int redirected = !isatty(STDIN_FILENO);
+    if (redirected) {
         read_seed(&wd);
+    } else {
+        load_default(&wd);
     }
     if (frames >= 0) {
         run_headless(&wd, frames);
         world_free(&wd);
         return 0;
     }
-    // The seed arrived on stdin; reconnect the keyboard so keys can be read.
-    if (freopen("/dev/tty", "r", stdin) == NULL) {
+    // Only when the seed came from a redirect do we reopen the terminal for keys.
+    if (redirected && freopen("/dev/tty", "r", stdin) == NULL) {
         fprintf(stderr, "cannot open terminal for input\n");
         world_free(&wd);
         return 1;
