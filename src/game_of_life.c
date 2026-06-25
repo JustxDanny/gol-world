@@ -32,7 +32,9 @@ typedef struct {
 } World;
 
 // Flat index of padded coordinate (pr, pc) inside a ghost-bordered buffer.
-static int at(int w, int pr, int pc) { return pr * (w + 2) + pc; }
+static int at(int w, int pr, int pc) {
+    return pr * (w + 2) + pc;
+}
 
 // Allocate both buffers (sized with the border). Returns 0 on success, -1 if not.
 static int world_init(World* wd, int h, int w) {
@@ -221,8 +223,8 @@ static void run_ncurses(World* wd) {
         }
         draw_cells(wd, oy, ox);
         if (LINES > wd->h + 2) {
-            mvprintw(LINES - 1, 0, "gen:%-5d pop:%-4d delay:%dms  A:+ Z:- Space:quit", gen, population(wd),
-                     delay);
+            mvprintw(LINES - 1, 0, "gen:%-5d pop:%-4d delay:%dms  A:+ Z:- Space:quit", gen,
+                     population(wd), delay);
         }
         refresh();
         step(wd);
@@ -231,7 +233,7 @@ static void run_ncurses(World* wd) {
     endwin();
 }
 
-// Advance the simulation with no screen output (the headless --frames mode).
+// Advance the simulation with no screen output (used by the headless test mode).
 static void run_headless(World* wd, int frames) {
     for (int i = 0; i < frames; i++) {
         step(wd);
@@ -239,20 +241,16 @@ static void run_headless(World* wd, int frames) {
     printf("frames=%d population=%d\n", frames, population(wd));
 }
 
-int main(int argc, char* const argv[]) {
+int main(void) {
     World wd;
     if (world_init(&wd, H, W) != 0) {
         world_free(&wd);
         fprintf(stderr, "out of memory\n");
         return 1;
     }
-    // Look for "--frames N": N runs headless (no screen) for testing; -1 means play.
-    int frames = -1;
-    for (int i = 1; i + 1 < argc; i++) {
-        if (strcmp(argv[i], "--frames") == 0) {
-            frames = atoi(argv[i + 1]);
-        }
-    }
+    // Headless test mode: if GOL_FRAMES is set, run that many ticks with no screen.
+    const char* frames_env = getenv("GOL_FRAMES");
+    int frames = frames_env != NULL ? atoi(frames_env) : -1;
     // Take the seed from a redirected file, or fall back to a built-in glider.
     if (isatty(STDIN_FILENO)) {
         load_default(&wd);
