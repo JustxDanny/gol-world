@@ -32,7 +32,9 @@ typedef struct {
 } World;
 
 // Flat index of padded coordinate (pr, pc) inside a ghost-bordered buffer.
-static int at(int w, int pr, int pc) { return pr * (w + 2) + pc; }
+static int at(int w, int pr, int pc) {
+    return pr * (w + 2) + pc;
+}
 
 // Allocate both buffers (sized with the border). Returns 0 on success, -1 if not.
 static int world_init(World* wd, int h, int w) {
@@ -221,8 +223,8 @@ static void run_ncurses(World* wd) {
         }
         draw_cells(wd, oy, ox);
         if (LINES > wd->h + 2) {
-            mvprintw(LINES - 1, 0, "gen:%-5d pop:%-4d delay:%dms  A:+ Z:- Space:quit", gen, population(wd),
-                     delay);
+            mvprintw(LINES - 1, 0, "gen:%-5d pop:%-4d delay:%dms  A:+ Z:- Space:quit", gen,
+                     population(wd), delay);
         }
         refresh();
         step(wd);
@@ -239,7 +241,7 @@ static void run_headless(World* wd, int frames) {
     printf("frames=%d population=%d\n", frames, population(wd));
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* const argv[]) {
     World wd;
     if (world_init(&wd, H, W) != 0) {
         world_free(&wd);
